@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "xpensabl",
+  "version": "1.0.0",
+  "description": "A Chrome extension built with TypeScript",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "expense-icon.png",
+      "48": "expense-icon.png",
+      "128": "expense-icon.png"
+    }
+  },
+  "icons": {
+    "16": "expense-icon.png",
+    "48": "expense-icon.png",
+    "128": "expense-icon.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "host_permissions": ["https://app.navan.com/*"],
+  "permissions": [
+    "scripting",
+    "storage",
+    "alarms",
+    "notifications",
+    "webRequest",
+    "sidePanel",
+    "tabs"
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}

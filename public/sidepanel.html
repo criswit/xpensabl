@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xpensabl Side Panel</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .info {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .token-section {
+      margin-top: 20px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .token-section h2 {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    
+    .token-container {
+      margin-bottom: 10px;
+    }
+    
+    .token-display {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      padding: 12px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      word-break: break-all;
+      margin-bottom: 10px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .token-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+    
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    
+    .btn-secondary:hover:not(:disabled) {
+      background-color: #545b62;
+    }
+    
+    .token-status {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #6c757d;
+      min-height: 20px;
+    }
+    
+    .token-status.success {
+      color: #28a745;
+    }
+    
+    .token-status.error {
+      color: #dc3545;
+    }
+    
+    .expenses-section {
+      margin-top: 20px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .expenses-section h2 {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    
+    .expenses-container {
+      margin-bottom: 15px;
+    }
+    
+    .expense-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .btn-success {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .btn-success:hover:not(:disabled) {
+      background-color: #218838;
+    }
+    
+    .expenses-status {
+      margin-bottom: 15px;
+      font-size: 13px;
+      color: #6c757d;
+      min-height: 20px;
+    }
+    
+    .expenses-status.success {
+      color: #28a745;
+    }
+    
+    .expenses-status.error {
+      color: #dc3545;
+    }
+    
+    .expenses-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+    
+    .expense-item {
+      padding: 12px;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    
+    .expense-item:last-child {
+      border-bottom: none;
+    }
+    
+    .expense-item:hover {
+      background-color: #f8f9fa;
+      cursor: pointer;
+    }
+    
+    .expense-arrow {
+      color: #6c757d;
+      font-size: 18px;
+      font-weight: bold;
+      margin-left: 10px;
+      align-self: center;
+    }
+    
+    .expense-main {
+      flex: 1;
+    }
+    
+    .expense-merchant {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    
+    .expense-details {
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 2px;
+    }
+    
+    .expense-amount {
+      font-weight: 600;
+      color: #333;
+      text-align: right;
+    }
+    
+    .expense-status {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    
+    .expense-status.approved {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .expense-status.pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .expense-status.rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .expense-status.unknown {
+      background-color: #e2e3e5;
+      color: #495057;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6c757d;
+      font-style: italic;
+    }
+    
+    /* Responsive design improvements */
+    @media (max-width: 400px) {
+      body {
+        padding: 15px;
+      }
+      
+      .content, .token-section, .expenses-section {
+        padding: 15px;
+      }
+      
+      h1 {
+        font-size: 20px;
+        margin-bottom: 15px;
+      }
+      
+      .token-section h2, .expenses-section h2 {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+      
+      .expense-item {
+        padding: 10px;
+      }
+      
+      .expense-merchant {
+        font-size: 14px;
+      }
+      
+      .expense-details {
+        font-size: 11px;
+      }
+      
+      .expense-amount {
+        font-size: 14px;
+      }
+      
+      .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+      
+      .expense-actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+    
+    /* Ensure good text readability */
+    .expense-item {
+      transition: background-color 0.2s ease;
+    }
+    
+    /* Better scrollbar styling for webkit browsers */
+    .expenses-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .expenses-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    .expenses-list::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    
+    .expenses-list::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+    
+    /* Expense Detail View Styles */
+    .expense-detail {
+      margin-top: 20px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .detail-header h3 {
+      margin: 0;
+      color: #333;
+      font-size: 18px;
+    }
+    
+    .detail-content {
+      margin-bottom: 20px;
+    }
+    
+    .detail-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .detail-field:last-child {
+      border-bottom: none;
+    }
+    
+    .detail-label {
+      font-weight: 500;
+      color: #495057;
+      min-width: 120px;
+    }
+    
+    .detail-value {
+      text-align: right;
+      color: #333;
+      flex: 1;
+      word-break: break-word;
+    }
+    
+    .detail-value.highlight {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .detail-actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 15px;
+      border-top: 1px solid #dee2e6;
+    }
+    
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Xpensabl Side Panel</h1>
+  <div class="content">
+    <p class="info">Welcome to the Xpensabl side panel!</p>
+    <p class="info">This panel stays open alongside your browser content.</p>
+  </div>
+  
+  <div class="token-section">
+    <h2>Authorization Token</h2>
+    <div class="token-container">
+      <div class="token-display" id="tokenDisplay">
+        <span id="tokenText">No token captured yet</span>
+      </div>
+      <div class="token-actions">
+        <button id="copyToken" class="btn btn-primary" disabled>Copy Token</button>
+        <button id="refreshToken" class="btn btn-secondary">Refresh</button>
+        <button id="toggleMask" class="btn btn-secondary" style="display: none;">Show Full</button>
+      </div>
+    </div>
+    <div class="token-status" id="tokenStatus"></div>
+  </div>
+  
+  <div class="expenses-section">
+    <h2>Recent Expenses</h2>
+    <div class="expenses-container">
+      <div class="expense-actions">
+        <button id="fetchExpenses" class="btn btn-success">Fetch Expenses</button>
+        <button id="refreshExpenses" class="btn btn-secondary" style="display: none;">Refresh</button>
+      </div>
+      <div class="expenses-status" id="expensesStatus">Click "Fetch Expenses" to load your recent expenses</div>
+      <div class="expenses-list" id="expensesList" style="display: none;">
+        <!-- Expenses will be populated here -->
+      </div>
+    </div>
+    
+    <!-- Expense Detail View -->
+    <div class="expense-detail" id="expenseDetail" style="display: none;">
+      <div class="detail-header">
+        <button id="backToList" class="btn btn-secondary">← Back to List</button>
+        <h3>Expense Details</h3>
+      </div>
+      <div class="detail-content" id="expenseDetailContent">
+        <!-- Expense details will be populated here -->
+      </div>
+      <div class="detail-actions">
+        <button id="duplicateExpense" class="btn btn-primary">Duplicate Expense</button>
+      </div>
+    </div>
+  </div>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
