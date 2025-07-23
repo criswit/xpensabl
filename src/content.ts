@@ -1,12 +1,14 @@
-console.log('Content script loaded on:', window.location.href);
+import { logger } from './services/chromeLogger';
+
+logger.info('Content script loaded on:', window.location.href);
 
 const observer = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
-    console.log('DOM changed:', mutation);
+    logger.debug('DOM changed:', mutation);
   });
 });
 
 observer.observe(document.body, {
   childList: true,
-  subtree: true
+  subtree: true,
 });

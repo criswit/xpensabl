@@ -10,20 +10,44 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "prebuild": "npm run test"
+    "prebuild": "npm run test",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",
+    "lint:ci": "eslint src/**/*.ts --max-warnings 0",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.251",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
     "copy-webpack-plugin": "^11.0.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
     "jsdom": "^26.1.0",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.0",
     "typescript": "^5.3.0",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "src/**/*.{js,json}": [
+      "prettier --write"
+    ]
   }
 }

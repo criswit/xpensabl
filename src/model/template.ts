@@ -3,7 +3,14 @@ import { ExpenseCreateMerchant, ExpenseParticipant, ExpenseCreateReportingData }
 export const CURRENT_SCHEMA_VERSION = 1;
 
 export type ScheduleInterval = 'daily' | 'weekly' | 'monthly' | 'custom';
-export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+export type DayOfWeek =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
 export type ExecutionStatus = 'success' | 'failed' | 'pending' | 'skipped' | 'retry';
 
 export interface TemplateTaxDetails {
@@ -25,7 +32,10 @@ export interface TemplateExpenseData {
     personal: boolean;
     personalMerchantAmount?: number;
     participants: ExpenseParticipant[];
-    customFieldValues: any[];
+    customFieldValues: Array<{
+      fieldId: string;
+      value: string | number | boolean;
+    }>;
     taxDetails: TemplateTaxDetails;
   };
   reportingData: ExpenseCreateReportingData;
@@ -36,21 +46,21 @@ export interface TemplateScheduling {
   interval: ScheduleInterval;
   startDate: number;
   endDate?: number;
-  
+
   intervalConfig: {
     daysOfWeek?: DayOfWeek[];
     dayOfMonth?: number | 'last';
     customIntervalMs?: number;
   };
-  
+
   executionTime: {
     hour: number;
     minute: number;
     timeZone: string;
   };
-  
+
   nextExecution: number | null;
-  
+
   paused: boolean;
   pausedAt?: number;
   pauseReason?: string;
@@ -59,7 +69,7 @@ export interface TemplateScheduling {
 export interface ExecutionError {
   code: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   retriable: boolean;
 }
 
@@ -100,7 +110,7 @@ export interface ExpenseTemplate {
   createdAt: number;
   updatedAt: number;
   version: number;
-  
+
   expenseData: TemplateExpenseData;
   scheduling: TemplateScheduling | null;
   executionHistory: TemplateExecution[];
@@ -112,6 +122,7 @@ export interface TemplatePreferences {
   defaultTimeZone: string;
   notificationEnabled: boolean;
   autoCleanupDays: number;
+  [key: string]: unknown;
 }
 
 export interface TemplateIndex {
@@ -171,8 +182,8 @@ export interface QuotaInfo {
 export interface MigrationHandler {
   version: number;
   description: string;
-  migrate(data: any): Promise<any>;
-  rollback?(data: any): Promise<any>;
+  migrate(data: unknown): Promise<unknown>;
+  rollback?(data: unknown): Promise<unknown>;
 }
 
 export class StorageError extends Error {
@@ -203,7 +214,7 @@ export const STORAGE_ERROR_CODES = {
   LOCAL_READ_FAILED: 'Failed to read from local storage',
   LOCAL_WRITE_FAILED: 'Failed to write to local storage',
   SYNC_QUOTA_EXCEEDED: 'Sync storage quota exceeded',
-  LOCAL_QUOTA_EXCEEDED: 'Local storage quota exceeded'
+  LOCAL_QUOTA_EXCEEDED: 'Local storage quota exceeded',
 } as const;
 
 export const TEMPLATE_ERROR_CODES = {
@@ -211,5 +222,5 @@ export const TEMPLATE_ERROR_CODES = {
   TEMPLATE_LIMIT_EXCEEDED: 'Maximum template limit exceeded',
   INVALID_NAME: 'Invalid template name',
   INVALID_EXPENSE_DATA: 'Invalid expense data',
-  SCHEDULING_ERROR: 'Error in template scheduling configuration'
+  SCHEDULING_ERROR: 'Error in template scheduling configuration',
 } as const;

@@ -1,6 +1,8 @@
 import { TemplateManager } from './templateManager';
 import { StorageManager } from './storageManager';
 import { MigrationManager } from './migrationManager';
+import { logger } from './chromeLogger';
+import { ExpenseTemplate } from '../model/template';
 
 /**
  * Initialize the template storage system
@@ -8,7 +10,7 @@ import { MigrationManager } from './migrationManager';
  */
 export async function initializeTemplateStorage(): Promise<void> {
   try {
-    console.log('Initializing template storage system...');
+    logger.info('Initializing template storage system...');
 
     // Get manager instances
     const migrationManager = MigrationManager.getInstance();
@@ -16,60 +18,62 @@ export async function initializeTemplateStorage(): Promise<void> {
     const templateManager = TemplateManager.getInstance();
 
     // Run migrations if needed
-    console.log('Checking for required migrations...');
+    logger.info('Checking for required migrations...');
     const migrationNeeded = await migrationManager.migrateIfNeeded();
     if (migrationNeeded) {
-      console.log('✓ Data migration completed successfully');
+      logger.info('✓ Data migration completed successfully');
     } else {
-      console.log('✓ No migration needed');
+      logger.info('✓ No migration needed');
     }
 
     // Validate data integrity
-    console.log('Validating data integrity...');
+    logger.info('Validating data integrity...');
     const integrityReport = await migrationManager.getDataIntegrityReport();
     if (integrityReport.isValid) {
-      console.log('✓ Data integrity check passed');
+      logger.info('✓ Data integrity check passed');
     } else {
-      console.warn('⚠ Data integrity issues found:', integrityReport.issues);
-      console.log('Suggestions:', integrityReport.suggestions);
+      logger.warn('⚠ Data integrity issues found:', integrityReport.issues);
+      logger.info('Suggestions:', integrityReport.suggestions);
     }
 
     // Check storage usage
-    console.log('Checking storage usage...');
+    logger.info('Checking storage usage...');
     const storageUsage = await storageManager.getStorageUsageStats();
-    console.log(`Storage usage - Sync: ${storageUsage.sync.percentUsed.toFixed(1)}%, Local: ${storageUsage.local.percentUsed.toFixed(1)}%`);
+    logger.info(
+      `Storage usage - Sync: ${storageUsage.sync.percentUsed.toFixed(1)}%, Local: ${storageUsage.local.percentUsed.toFixed(1)}%`
+    );
 
     if (storageUsage.sync.nearLimit || storageUsage.local.nearLimit) {
-      console.warn('⚠ Storage quota is near limit, cleanup may be needed');
+      logger.warn('⚠ Storage quota is near limit, cleanup may be needed');
     }
 
     // Clean up old data if preferences allow
     const preferences = await templateManager.getTemplatePreferences();
     if (preferences.autoCleanupDays > 0) {
-      console.log(`Running automatic cleanup (${preferences.autoCleanupDays} day retention)...`);
+      logger.info(`Running automatic cleanup (${preferences.autoCleanupDays} day retention)...`);
       const cleanedCount = await templateManager.cleanupOldData(preferences.autoCleanupDays);
       if (cleanedCount > 0) {
-        console.log(`✓ Cleaned up ${cleanedCount} old records`);
+        logger.info(`✓ Cleaned up ${cleanedCount} old records`);
       }
     }
 
     // Set up storage change listener
     storageManager.onStorageChanged((changes, areaName) => {
-      console.log(`Storage changed in ${areaName}:`, Object.keys(changes));
-      
+      logger.info(`Storage changed in ${areaName}:`, Object.keys(changes));
+
       // Handle template sync updates
       if (areaName === 'sync' && 'xpensabl.templates.sync' in changes) {
-        console.log('Template sync data updated from another device');
+        logger.info('Template sync data updated from another device');
       }
-      
+
       if (areaName === 'local' && 'xpensabl.templates.local' in changes) {
-        console.log('Template local data updated');
+        logger.info('Template local data updated');
       }
     });
 
-    console.log('✓ Template storage system initialized successfully');
+    logger.info('✓ Template storage system initialized successfully');
   } catch (error) {
-    console.error('✗ Failed to initialize template storage system:', error);
+    logger.error('✗ Failed to initialize template storage system:', error);
     throw error;
   }
 }
@@ -96,14 +100,10 @@ export async function getTemplateStorageStatus(): Promise<{
     const storageManager = StorageManager.getInstance();
     const templateManager = TemplateManager.getInstance();
 
-    const [
-      integrityReport,
-      storageUsage,
-      templates
-    ] = await Promise.all([
+    const [integrityReport, storageUsage, templates] = await Promise.all([
       migrationManager.getDataIntegrityReport(),
       storageManager.getStorageUsageStats(),
-      templateManager.getAllTemplates()
+      templateManager.getAllTemplates(),
     ]);
 
     return {
@@ -114,22 +114,22 @@ export async function getTemplateStorageStatus(): Promise<{
         sync: {
           used: storageUsage.sync.used,
           available: storageUsage.sync.available,
-          percentUsed: storageUsage.sync.percentUsed
+          percentUsed: storageUsage.sync.percentUsed,
         },
         local: {
           used: storageUsage.local.used,
           available: storageUsage.local.available,
-          percentUsed: storageUsage.local.percentUsed
-        }
+          percentUsed: storageUsage.local.percentUsed,
+        },
       },
       integrityReport: {
         isValid: integrityReport.isValid,
         issues: integrityReport.issues,
-        suggestions: integrityReport.suggestions
-      }
+        suggestions: integrityReport.suggestions,
+      },
     };
   } catch (error) {
-    console.error('Failed to get template storage status:', error);
+    logger.error('Failed to get template storage status:', error);
     throw error;
   }
 }
@@ -143,8 +143,8 @@ export async function emergencyStorageCleanup(): Promise<{
   storageFreed: number;
 }> {
   try {
-    console.log('Starting emergency storage cleanup...');
-    
+    logger.info('Starting emergency storage cleanup...');
+
     const templateManager = TemplateManager.getInstance();
     const storageManager = StorageManager.getInstance();
 
@@ -160,22 +160,26 @@ export async function emergencyStorageCleanup(): Promise<{
     // Get final storage usage
     const finalUsage = await storageManager.getStorageUsageStats();
 
-    const storageFreed = (initialUsage.local.used - finalUsage.local.used) + 
-                        (initialUsage.sync.used - finalUsage.sync.used);
+    const storageFreed =
+      initialUsage.local.used -
+      finalUsage.local.used +
+      (initialUsage.sync.used - finalUsage.sync.used);
 
-    console.log(`Emergency cleanup completed: ${cleanedCount} records, ${storageFreed} bytes freed`);
+    logger.info(
+      `Emergency cleanup completed: ${cleanedCount} records, ${storageFreed} bytes freed`
+    );
 
     return {
       success: true,
       cleanedRecords: cleanedCount,
-      storageFreed: storageFreed
+      storageFreed,
     };
   } catch (error) {
-    console.error('Emergency cleanup failed:', error);
+    logger.error('Emergency cleanup failed:', error);
     return {
       success: false,
       cleanedRecords: 0,
-      storageFreed: 0
+      storageFreed: 0,
     };
   }
 }
@@ -184,8 +188,8 @@ export async function emergencyStorageCleanup(): Promise<{
  * Export all template data for backup purposes
  */
 export async function exportTemplateData(): Promise<{
-  templates: any[];
-  preferences: any;
+  templates: Array<ExpenseTemplate>;
+  preferences: Record<string, unknown>;
   exportTime: number;
   version: number;
 }> {
@@ -196,21 +200,21 @@ export async function exportTemplateData(): Promise<{
     const [templates, preferences, integrityReport] = await Promise.all([
       templateManager.getAllTemplates(),
       templateManager.getTemplatePreferences(),
-      migrationManager.getDataIntegrityReport()
+      migrationManager.getDataIntegrityReport(),
     ]);
 
     return {
-      templates: templates.map(template => ({
+      templates: templates.map((template) => ({
         ...template,
         // Remove execution history for smaller export size
-        executionHistory: template.executionHistory.slice(-10) // Keep last 10 records
+        executionHistory: template.executionHistory.slice(-10), // Keep last 10 records
       })),
       preferences,
       exportTime: Date.now(),
-      version: integrityReport.version
+      version: integrityReport.version,
     };
   } catch (error) {
-    console.error('Failed to export template data:', error);
+    logger.error('Failed to export template data:', error);
     throw error;
   }
 }
@@ -228,7 +232,7 @@ export async function testTemplateStorage(): Promise<{
 
   try {
     const templateManager = TemplateManager.getInstance();
-    
+
     // Test 1: Create a test template
     try {
       const testTemplate = await templateManager.createTemplate({
@@ -245,7 +249,7 @@ export async function testTemplateStorage(): Promise<{
             name: 'Test Merchant',
             online: false,
             perDiem: false,
-            timeZone: 'UTC'
+            timeZone: 'UTC',
           },
           details: {
             description: 'Test expense for storage verification',
@@ -256,12 +260,12 @@ export async function testTemplateStorage(): Promise<{
               country: 'US',
               noTax: true,
               reverseCharge: false,
-              taxRateDecimal: false
-            }
+              taxRateDecimal: false,
+            },
           },
-          reportingData: {}
+          reportingData: {},
         },
-        createdFrom: 'manual'
+        createdFrom: 'manual',
       });
       results.push(`✓ Created test template: ${testTemplate.id}`);
 
@@ -275,7 +279,7 @@ export async function testTemplateStorage(): Promise<{
 
       // Test 3: Update template
       const updated = await templateManager.updateTemplate(testTemplate.id, {
-        name: 'Updated Storage Test Template'
+        name: 'Updated Storage Test Template',
       });
       if (updated.name === 'Updated Storage Test Template') {
         results.push('✓ Successfully updated template');
@@ -293,7 +297,9 @@ export async function testTemplateStorage(): Promise<{
     // Test 5: Storage usage check
     try {
       const usage = await templateManager.getStorageUsage();
-      results.push(`✓ Storage usage check: sync ${usage.sync.percentUsed.toFixed(1)}%, local ${usage.local.percentUsed.toFixed(1)}%`);
+      results.push(
+        `✓ Storage usage check: sync ${usage.sync.percentUsed.toFixed(1)}%, local ${usage.local.percentUsed.toFixed(1)}%`
+      );
     } catch (error) {
       errors.push(`✗ Storage usage check failed: ${error}`);
     }
@@ -301,7 +307,7 @@ export async function testTemplateStorage(): Promise<{
     return {
       success: errors.length === 0,
       results,
-      errors
+      errors,
     };
   } catch (error) {
     errors.push(`✗ Storage test failed: ${error}`);

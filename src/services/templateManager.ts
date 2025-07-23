@@ -11,9 +11,10 @@ import {
   TemplateError,
   TEMPLATE_ERROR_CODES,
   CURRENT_SCHEMA_VERSION,
-  QuotaInfo
+  QuotaInfo,
 } from '../model/template';
 import { StorageManager } from './storageManager';
+import { logger } from './chromeLogger';
 
 export class TemplateManager {
   private storageManager: StorageManager;
@@ -33,10 +34,10 @@ export class TemplateManager {
   async createTemplate(templateData: CreateTemplateRequest): Promise<ExpenseTemplate> {
     // Validate input
     this.validateTemplateData(templateData);
-    
+
     // Check template limit
     await this.enforceTemplateLimit();
-    
+
     // Create template with generated ID
     const template: ExpenseTemplate = {
       id: this.generateTemplateId(),
@@ -53,17 +54,17 @@ export class TemplateManager {
         tags: templateData.tags || [],
         favorite: false,
         useCount: 0,
-        scheduledUseCount: 0
-      }
+        scheduledUseCount: 0,
+      },
     };
-    
+
     // Save to storage
     await this.saveTemplate(template);
-    
+
     // Update sync index
     await this.updateTemplateIndex(template);
-    
-    console.log(`Created template: ${template.id} - ${template.name}`);
+
+    logger.info(`Created template: ${template.id} - ${template.name}`);
     return template;
   }
 
@@ -76,10 +77,10 @@ export class TemplateManager {
       const localData = await this.storageManager.getLocalData<TemplateLocalStorage>(
         'xpensabl.templates.local'
       );
-      
+
       return localData?.templates[templateId] || null;
     } catch (error) {
-      console.error(`Failed to get template ${templateId}:`, error);
+      logger.error(`Failed to get template ${templateId}:`, error);
       throw new TemplateError(
         TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND,
         `Failed to retrieve template ${templateId}`,
@@ -93,24 +94,29 @@ export class TemplateManager {
       const localData = await this.storageManager.getLocalData<TemplateLocalStorage>(
         'xpensabl.templates.local'
       );
-      
+
       if (!localData?.templates) {
         return [];
       }
-      
+
       // Return templates sorted by most recently updated
-      return Object.values(localData.templates)
-        .sort((a, b) => b.updatedAt - a.updatedAt);
+      return Object.values(localData.templates).sort((a, b) => b.updatedAt - a.updatedAt);
     } catch (error) {
-      console.error('Failed to get all templates:', error);
+      logger.error('Failed to get all templates:', error);
       return [];
     }
   }
 
-  async updateTemplate(templateId: string, updates: Partial<ExpenseTemplate>): Promise<ExpenseTemplate> {
+  async updateTemplate(
+    templateId: string,
+    updates: Partial<ExpenseTemplate>
+  ): Promise<ExpenseTemplate> {
     const existing = await this.getTemplate(templateId);
     if (!existing) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND, `Template ${templateId} not found`);
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND,
+        `Template ${templateId} not found`
+      );
     }
 
     // Validate name if being updated
@@ -126,46 +132,52 @@ export class TemplateManager {
       id: existing.id, // Prevent ID changes
       createdAt: existing.createdAt, // Prevent creation date changes
       updatedAt: Date.now(),
-      version: existing.version // Prevent version changes through this method
+      version: existing.version, // Prevent version changes through this method
     };
 
     await this.saveTemplate(updated);
     await this.updateTemplateIndex(updated);
-    
-    console.log(`Updated template: ${templateId}`);
+
+    logger.info(`Updated template: ${templateId}`);
     return updated;
   }
 
   async deleteTemplate(templateId: string): Promise<void> {
     const existing = await this.getTemplate(templateId);
     if (!existing) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND, `Template ${templateId} not found`);
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND,
+        `Template ${templateId} not found`
+      );
     }
 
     // Remove from storage
-    const localData = await this.storageManager.getLocalData<TemplateLocalStorage>(
-      'xpensabl.templates.local'
-    ) || this.getDefaultLocalStorage();
+    const localData =
+      (await this.storageManager.getLocalData<TemplateLocalStorage>('xpensabl.templates.local')) ||
+      this.getDefaultLocalStorage();
 
     delete localData.templates[templateId];
 
     // Also remove any pending executions for this template
     localData.executionQueue = localData.executionQueue.filter(
-      execution => execution.templateId !== templateId
+      (execution) => execution.templateId !== templateId
     );
 
     await this.storageManager.setLocalData('xpensabl.templates.local', localData);
 
     // Update sync index
     await this.removeFromTemplateIndex(templateId);
-    
-    console.log(`Deleted template: ${templateId}`);
+
+    logger.info(`Deleted template: ${templateId}`);
   }
 
   async setTemplateScheduling(templateId: string, scheduling: TemplateScheduling): Promise<void> {
     const template = await this.getTemplate(templateId);
     if (!template) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND, `Template ${templateId} not found`);
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND,
+        `Template ${templateId} not found`
+      );
     }
 
     // Validate scheduling configuration
@@ -183,14 +195,19 @@ export class TemplateManager {
       // Remove from execution queue if disabled or paused
       await this.removeFromExecutionQueue(templateId);
     }
-    
-    console.log(`Updated scheduling for template: ${templateId}, next execution: ${scheduling.nextExecution}`);
+
+    logger.info(
+      `Updated scheduling for template: ${templateId}, next execution: ${scheduling.nextExecution}`
+    );
   }
 
   async addExecutionRecord(templateId: string, execution: TemplateExecution): Promise<void> {
     const template = await this.getTemplate(templateId);
     if (!template) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND, `Template ${templateId} not found`);
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND,
+        `Template ${templateId} not found`
+      );
     }
 
     template.executionHistory.push(execution);
@@ -200,64 +217,68 @@ export class TemplateManager {
       template.metadata.scheduledUseCount++;
     }
 
-    // Maintain history limit (keep last 100 records)
-    if (template.executionHistory.length > 100) {
+    // Maintain history limit (keep last 10 records as rolling window)
+    if (template.executionHistory.length > 10) {
       template.executionHistory = template.executionHistory
         .sort((a, b) => b.executedAt - a.executedAt)
-        .slice(0, 100);
+        .slice(0, 10);
     }
 
     await this.saveTemplate(template);
-    console.log(`Added execution record for template: ${templateId}, status: ${execution.status}`);
+    logger.info(`Added execution record for template: ${templateId}, status: ${execution.status}`);
   }
 
   async incrementTemplateUsage(templateId: string): Promise<void> {
     const template = await this.getTemplate(templateId);
     if (!template) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND, `Template ${templateId} not found`);
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.TEMPLATE_NOT_FOUND,
+        `Template ${templateId} not found`
+      );
     }
 
     template.metadata.useCount++;
     template.metadata.lastUsed = Date.now();
 
     await this.saveTemplate(template);
-    console.log(`Incremented usage for template: ${templateId}`);
+    logger.info(`Incremented usage for template: ${templateId}`);
   }
 
   async getTemplatePreferences(): Promise<TemplatePreferences> {
     try {
-      const syncData = await this.storageManager.getSyncData<TemplateSyncStorage>(
-        'xpensabl.templates.sync'
-      );
-      
+      const syncData =
+        await this.storageManager.getSyncData<TemplateSyncStorage>('xpensabl.templates.sync');
+
       return syncData?.preferences || this.getDefaultPreferences();
     } catch (error) {
-      console.error('Failed to get template preferences:', error);
+      logger.error('Failed to get template preferences:', error);
       return this.getDefaultPreferences();
     }
   }
 
-  async updateTemplatePreferences(preferences: Partial<TemplatePreferences>): Promise<TemplatePreferences> {
+  async updateTemplatePreferences(
+    preferences: Partial<TemplatePreferences>
+  ): Promise<TemplatePreferences> {
     const current = await this.getTemplatePreferences();
     const updated = { ...current, ...preferences };
 
-    const syncData = await this.storageManager.getSyncData<TemplateSyncStorage>(
-      'xpensabl.templates.sync'
-    ) || this.getDefaultSyncStorage();
+    const syncData =
+      (await this.storageManager.getSyncData<TemplateSyncStorage>('xpensabl.templates.sync')) ||
+      this.getDefaultSyncStorage();
 
     syncData.preferences = updated;
     await this.storageManager.setSyncData('xpensabl.templates.sync', syncData);
 
-    console.log('Updated template preferences');
+    logger.info('Updated template preferences');
     return updated;
   }
 
-  async getStorageUsage(): Promise<{sync: QuotaInfo, local: QuotaInfo}> {
+  async getStorageUsage(): Promise<{ sync: QuotaInfo; local: QuotaInfo }> {
     return await this.storageManager.getStorageUsageStats();
   }
 
   async cleanupOldData(retentionDays: number = 90): Promise<number> {
-    const cutoffTime = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+    const cutoffTime = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
     let cleanedCount = 0;
 
     try {
@@ -273,29 +294,29 @@ export class TemplateManager {
       for (const templateId in localData.templates) {
         const template = localData.templates[templateId];
         const originalLength = template.executionHistory.length;
-        
+
         template.executionHistory = template.executionHistory.filter(
-          execution => execution.executedAt > cutoffTime
+          (execution) => execution.executedAt > cutoffTime
         );
-        
+
         cleanedCount += originalLength - template.executionHistory.length;
       }
 
       // Clean execution queue of old failed executions
       const originalQueueLength = localData.executionQueue.length;
       localData.executionQueue = localData.executionQueue.filter(
-        execution => execution.scheduledAt > cutoffTime || execution.status === 'pending'
+        (execution) => execution.scheduledAt > cutoffTime || execution.status === 'pending'
       );
-      
+
       cleanedCount += originalQueueLength - localData.executionQueue.length;
 
       // Save cleaned data
       await this.storageManager.setLocalData('xpensabl.templates.local', localData);
-      
-      console.log(`Cleaned up ${cleanedCount} old records`);
+
+      logger.info(`Cleaned up ${cleanedCount} old records`);
       return cleanedCount;
     } catch (error) {
-      console.error('Failed to cleanup old data:', error);
+      logger.error('Failed to cleanup old data:', error);
       return 0;
     }
   }
@@ -307,50 +328,86 @@ export class TemplateManager {
     }
 
     if (data.name.trim().length > 100) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.INVALID_NAME, 'Template name must be 100 characters or less');
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.INVALID_NAME,
+        'Template name must be 100 characters or less'
+      );
     }
 
     if (!data.expenseData) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.INVALID_EXPENSE_DATA, 'Expense data is required');
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.INVALID_EXPENSE_DATA,
+        'Expense data is required'
+      );
     }
 
     if (!data.expenseData.merchantAmount || data.expenseData.merchantAmount <= 0) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.INVALID_EXPENSE_DATA, 'Valid merchant amount is required');
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.INVALID_EXPENSE_DATA,
+        'Valid merchant amount is required'
+      );
     }
 
     if (!data.expenseData.merchantCurrency) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.INVALID_EXPENSE_DATA, 'Merchant currency is required');
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.INVALID_EXPENSE_DATA,
+        'Merchant currency is required'
+      );
     }
   }
 
   private validateSchedulingConfig(scheduling: TemplateScheduling): void {
     if (!scheduling.interval) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.SCHEDULING_ERROR, 'Scheduling interval is required');
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.SCHEDULING_ERROR,
+        'Scheduling interval is required'
+      );
     }
 
     if (scheduling.executionTime.hour < 0 || scheduling.executionTime.hour > 23) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.SCHEDULING_ERROR, 'Execution hour must be between 0 and 23');
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.SCHEDULING_ERROR,
+        'Execution hour must be between 0 and 23'
+      );
     }
 
     if (scheduling.executionTime.minute < 0 || scheduling.executionTime.minute > 59) {
-      throw new TemplateError(TEMPLATE_ERROR_CODES.SCHEDULING_ERROR, 'Execution minute must be between 0 and 59');
+      throw new TemplateError(
+        TEMPLATE_ERROR_CODES.SCHEDULING_ERROR,
+        'Execution minute must be between 0 and 59'
+      );
     }
 
     // Validate interval-specific configuration
     switch (scheduling.interval) {
       case 'weekly':
-        if (!scheduling.intervalConfig.daysOfWeek || scheduling.intervalConfig.daysOfWeek.length === 0) {
-          throw new TemplateError(TEMPLATE_ERROR_CODES.SCHEDULING_ERROR, 'Days of week required for weekly scheduling');
+        if (
+          !scheduling.intervalConfig.daysOfWeek ||
+          scheduling.intervalConfig.daysOfWeek.length === 0
+        ) {
+          throw new TemplateError(
+            TEMPLATE_ERROR_CODES.SCHEDULING_ERROR,
+            'Days of week required for weekly scheduling'
+          );
         }
         break;
       case 'monthly':
         if (!scheduling.intervalConfig.dayOfMonth) {
-          throw new TemplateError(TEMPLATE_ERROR_CODES.SCHEDULING_ERROR, 'Day of month required for monthly scheduling');
+          throw new TemplateError(
+            TEMPLATE_ERROR_CODES.SCHEDULING_ERROR,
+            'Day of month required for monthly scheduling'
+          );
         }
         break;
       case 'custom':
-        if (!scheduling.intervalConfig.customIntervalMs || scheduling.intervalConfig.customIntervalMs < 3600000) {
-          throw new TemplateError(TEMPLATE_ERROR_CODES.SCHEDULING_ERROR, 'Custom interval must be at least 1 hour');
+        if (
+          !scheduling.intervalConfig.customIntervalMs ||
+          scheduling.intervalConfig.customIntervalMs < 300000
+        ) {
+          throw new TemplateError(
+            TEMPLATE_ERROR_CODES.SCHEDULING_ERROR,
+            'Custom interval must be at least 5 minutes'
+          );
         }
         break;
     }
@@ -373,9 +430,9 @@ export class TemplateManager {
   }
 
   private async saveTemplate(template: ExpenseTemplate): Promise<void> {
-    const localData = await this.storageManager.getLocalData<TemplateLocalStorage>(
-      'xpensabl.templates.local'
-    ) || this.getDefaultLocalStorage();
+    const localData =
+      (await this.storageManager.getLocalData<TemplateLocalStorage>('xpensabl.templates.local')) ||
+      this.getDefaultLocalStorage();
 
     localData.templates[template.id] = template;
 
@@ -383,9 +440,9 @@ export class TemplateManager {
   }
 
   private async updateTemplateIndex(template: ExpenseTemplate): Promise<void> {
-    const syncData = await this.storageManager.getSyncData<TemplateSyncStorage>(
-      'xpensabl.templates.sync'
-    ) || this.getDefaultSyncStorage();
+    const syncData =
+      (await this.storageManager.getSyncData<TemplateSyncStorage>('xpensabl.templates.sync')) ||
+      this.getDefaultSyncStorage();
 
     // Update or add template in index
     const indexEntry: TemplateIndex = {
@@ -393,10 +450,10 @@ export class TemplateManager {
       name: template.name,
       updatedAt: template.updatedAt,
       schedulingEnabled: template.scheduling?.enabled || false,
-      nextExecution: template.scheduling?.nextExecution || undefined
+      nextExecution: template.scheduling?.nextExecution || undefined,
     };
 
-    const existingIndex = syncData.templateIndex.findIndex(t => t.id === template.id);
+    const existingIndex = syncData.templateIndex.findIndex((t) => t.id === template.id);
     if (existingIndex >= 0) {
       syncData.templateIndex[existingIndex] = indexEntry;
     } else {
@@ -412,24 +469,23 @@ export class TemplateManager {
   }
 
   private async removeFromTemplateIndex(templateId: string): Promise<void> {
-    const syncData = await this.storageManager.getSyncData<TemplateSyncStorage>(
-      'xpensabl.templates.sync'
-    );
+    const syncData =
+      await this.storageManager.getSyncData<TemplateSyncStorage>('xpensabl.templates.sync');
 
     if (syncData) {
-      syncData.templateIndex = syncData.templateIndex.filter(t => t.id !== templateId);
+      syncData.templateIndex = syncData.templateIndex.filter((t) => t.id !== templateId);
       await this.storageManager.setSyncData('xpensabl.templates.sync', syncData);
     }
   }
 
   private async scheduleExecution(templateId: string, executionTime: number): Promise<void> {
-    const localData = await this.storageManager.getLocalData<TemplateLocalStorage>(
-      'xpensabl.templates.local'
-    ) || this.getDefaultLocalStorage();
+    const localData =
+      (await this.storageManager.getLocalData<TemplateLocalStorage>('xpensabl.templates.local')) ||
+      this.getDefaultLocalStorage();
 
     // Remove any existing scheduled execution for this template
     localData.executionQueue = localData.executionQueue.filter(
-      execution => execution.templateId !== templateId
+      (execution) => execution.templateId !== templateId
     );
 
     // Add new scheduled execution
@@ -438,7 +494,7 @@ export class TemplateManager {
       templateId,
       scheduledAt: executionTime,
       status: 'pending',
-      retryCount: 0
+      retryCount: 0,
     };
 
     localData.executionQueue.push(scheduledExecution);
@@ -453,9 +509,9 @@ export class TemplateManager {
 
     if (localData) {
       localData.executionQueue = localData.executionQueue.filter(
-        execution => execution.templateId !== templateId
+        (execution) => execution.templateId !== templateId
       );
-      
+
       await this.storageManager.setLocalData('xpensabl.templates.local', localData);
     }
   }
@@ -474,13 +530,29 @@ export class TemplateManager {
       case 'daily':
         return this.calculateDailyExecution(now, hour, minute);
       case 'weekly':
-        return this.calculateWeeklyExecution(now, hour, minute, scheduling.intervalConfig.daysOfWeek || []);
+        return this.calculateWeeklyExecution(
+          now,
+          hour,
+          minute,
+          scheduling.intervalConfig.daysOfWeek || []
+        );
       case 'monthly':
-        return this.calculateMonthlyExecution(now, hour, minute, scheduling.intervalConfig.dayOfMonth || 1);
+        return this.calculateMonthlyExecution(
+          now,
+          hour,
+          minute,
+          scheduling.intervalConfig.dayOfMonth || 1
+        );
       case 'custom':
-        return this.calculateCustomExecution(now, scheduling.intervalConfig.customIntervalMs || 86400000);
+        return this.calculateCustomExecution(
+          now,
+          scheduling.intervalConfig.customIntervalMs || 86400000
+        );
       default:
-        throw new TemplateError(TEMPLATE_ERROR_CODES.SCHEDULING_ERROR, `Unsupported scheduling interval: ${scheduling.interval}`);
+        throw new TemplateError(
+          TEMPLATE_ERROR_CODES.SCHEDULING_ERROR,
+          `Unsupported scheduling interval: ${scheduling.interval}`
+        );
     }
   }
 
@@ -496,18 +568,28 @@ export class TemplateManager {
     return next.getTime();
   }
 
-  private calculateWeeklyExecution(base: Date, hour: number, minute: number, daysOfWeek: string[]): number {
+  private calculateWeeklyExecution(
+    base: Date,
+    hour: number,
+    minute: number,
+    daysOfWeek: string[]
+  ): number {
     // Simple implementation - find next occurrence of specified day
     const next = new Date(base);
     next.setHours(hour, minute, 0, 0);
 
     // Map day names to numbers (0 = Sunday)
-    const dayMap: {[key: string]: number} = {
-      'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
-      'thursday': 4, 'friday': 5, 'saturday': 6
+    const dayMap: { [key: string]: number } = {
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
     };
 
-    const targetDays = daysOfWeek.map(day => dayMap[day]).sort();
+    const targetDays = daysOfWeek.map((day) => dayMap[day]).sort();
     const currentDay = base.getDay();
 
     // Find next target day
@@ -528,7 +610,12 @@ export class TemplateManager {
     return next.getTime();
   }
 
-  private calculateMonthlyExecution(base: Date, hour: number, minute: number, dayOfMonth: number | 'last'): number {
+  private calculateMonthlyExecution(
+    base: Date,
+    hour: number,
+    minute: number,
+    dayOfMonth: number | 'last'
+  ): number {
     const next = new Date(base);
     next.setHours(hour, minute, 0, 0);
 
@@ -557,7 +644,7 @@ export class TemplateManager {
       maxTemplates: 5,
       defaultTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       notificationEnabled: true,
-      autoCleanupDays: 90
+      autoCleanupDays: 90,
     };
   }
 
@@ -565,7 +652,7 @@ export class TemplateManager {
     return {
       version: CURRENT_SCHEMA_VERSION,
       preferences: this.getDefaultPreferences(),
-      templateIndex: []
+      templateIndex: [],
     };
   }
 
@@ -575,8 +662,8 @@ export class TemplateManager {
       executionQueue: [],
       migrationState: {
         currentVersion: CURRENT_SCHEMA_VERSION,
-        pendingMigrations: []
-      }
+        pendingMigrations: [],
+      },
     };
   }
 }

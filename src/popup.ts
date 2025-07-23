@@ -1,3 +1,5 @@
+import { logger } from './services/chromeLogger';
+
 document.addEventListener('DOMContentLoaded', () => {
   const button = document.getElementById('clickMe');
   const sidePanelButton = document.getElementById('openSidePanel');
@@ -9,9 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   sidePanelButton?.addEventListener('click', () => {
     // Open the side panel using chrome.runtime.sendMessage
-    chrome.runtime.sendMessage({ action: 'openSidePanel' }, (response) => {
+    chrome.runtime.sendMessage({ action: 'openSidePanel' }, (_response) => {
       if (chrome.runtime.lastError) {
-        console.error('Error:', chrome.runtime.lastError);
+        logger.error('Error:', chrome.runtime.lastError);
         output!.textContent = 'Error opening side panel';
       } else {
         output!.textContent = 'Side panel opened!';

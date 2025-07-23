@@ -1,8 +1,8 @@
 // Basic expense type (legacy - keeping for backward compatibility)
 export type expense = {
-    id: string
-    name: string
-}
+  id: string;
+  name: string;
+};
 
 // Comprehensive expense interfaces based on Navan API response structure
 
@@ -70,7 +70,11 @@ export interface ExpenseParticipant {
 
 export interface ExpenseTaxDetails {
   vatNumber?: string;
-  taxLines: any[];
+  taxLines: Array<{
+    rate?: number;
+    amount?: number;
+    description?: string;
+  }>;
   country: string;
   address?: string;
   noTax: boolean;
@@ -84,7 +88,10 @@ export interface ExpenseTaxDetails {
 }
 
 export interface ExpenseDetails {
-  customFieldValues: any[];
+  customFieldValues: Array<{
+    fieldId: string;
+    value: string | number | boolean;
+  }>;
   glCode?: string;
   dateCreated: string;
   dateModified: string;
@@ -126,7 +133,7 @@ export interface ExpenseDetails {
 
 export interface ExpenseFlag {
   status?: string;
-  reasons: Record<string, any>;
+  reasons: Record<string, string | number | boolean>;
   reason?: string;
   refundAmount?: number;
   refundPolicyAmount?: number;
@@ -143,7 +150,7 @@ export interface ExpensePolicyDescription {
   customPolicyUuid?: string;
   name: string;
   description: string;
-  customPolicyMerchantCategoryGroups?: any;
+  customPolicyMerchantCategoryGroups?: Record<string, unknown>;
   picture?: string;
   newPicture?: string;
   defaultFlagSpendIntervals: string[];
@@ -166,7 +173,13 @@ export interface ExpenseData {
   uuid: string;
   user: ExpenseUser;
   source: string;
-  plaidTransaction?: any;
+  plaidTransaction?: {
+    id?: string;
+    amount?: number;
+    accountId?: string;
+    categoryId?: string;
+    [key: string]: unknown;
+  };
   status: string;
   reimbursementMethod: string;
   date: string;
@@ -219,7 +232,7 @@ export interface ExpenseData {
   itemized: boolean;
   adminApprovalRequired: boolean;
   policyName: string;
-  priceQuote?: any;
+  priceQuote?: Record<string, unknown>;
   managerUuid?: string;
   travelApproverUuid?: string;
   mileageExpense: boolean;
@@ -229,8 +242,8 @@ export interface ExpenseData {
   advancedMileage: boolean;
   mileageExpenseV1: boolean;
   travelRelatedPayLaterHotelTransaction: boolean;
-  _trip?: any;
-  _bookings?: any;
+  _trip?: Record<string, unknown>;
+  _bookings?: Array<Record<string, unknown>>;
   '@type': string;
   prettyMerchantName: string;
   _type: string;
@@ -285,7 +298,10 @@ export interface ExpenseCreateMerchant {
 
 // Details object for expense creation
 export interface ExpenseCreateDetails {
-  customFieldValues: any[];
+  customFieldValues: Array<{
+    fieldId: string;
+    value: string | number | boolean;
+  }>;
   description: string;
   participants: ExpenseParticipant[];
   personal: boolean;
@@ -300,7 +316,11 @@ export interface ExpenseCreateDetails {
     reverseCharge: boolean;
     syncedFromLedger: boolean;
     tax?: number;
-    taxLines: any[];
+    taxLines: Array<{
+      rate?: number;
+      amount?: number;
+      description?: string;
+    }>;
     taxRateDecimal: boolean;
     vatNumber?: string;
   };
@@ -346,5 +366,5 @@ export interface ExpenseApiError {
   error: string;
   message?: string;
   status?: number;
-  details?: any;
+  details?: Record<string, unknown>;
 }

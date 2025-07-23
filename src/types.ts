@@ -34,6 +34,8 @@ export interface BackgroundMessage {
   payload?: any;
   selectedTxn?: { id: string };
   expenseData?: any;
+  templateData?: any;
+  templateId?: string;
 }
 
 // Notification types
@@ -48,5 +50,5 @@ export enum LogLevel {
   DEBUG = 'debug',
   INFO = 'info',
   WARN = 'warn',
-  ERROR = 'error'
+  ERROR = 'error',
 }

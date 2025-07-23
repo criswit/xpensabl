@@ -24,6 +24,7 @@ module.exports = {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist')
   },
+  devtool: 'cheap-module-source-map',
   plugins: [
     new CopyPlugin({
       patterns: [

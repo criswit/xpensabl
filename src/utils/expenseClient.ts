@@ -1,27 +1,27 @@
-import { 
-  ExpenseResponse, 
-  ExpenseListResponse, 
-  ExpenseCreatePayload, 
-  ExpenseFilters 
+import {
+  ExpenseResponse,
+  ExpenseListResponse,
+  ExpenseCreatePayload,
+  ExpenseFilters,
 } from '../model/expense';
+import { logger } from '../services/chromeLogger';
 
 // Client-side utility for communicating with the background script for expense operations
 export class ExpenseClient {
-  
   // Send message to background script and handle response
-  private static sendMessage(action: string, payload?: any): Promise<any> {
+  private static sendMessage<T = unknown>(action: string, payload?: unknown): Promise<T> {
     return new Promise((resolve, reject) => {
       if (!chrome?.runtime) {
         reject(new Error('Chrome runtime not available'));
         return;
       }
-      
+
       chrome.runtime.sendMessage({ action, payload }, (response) => {
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message));
           return;
         }
-        
+
         if (response?.success) {
           resolve(response.data);
         } else {
@@ -36,7 +36,7 @@ export class ExpenseClient {
     try {
       return await this.sendMessage('fetchExpense', { selectedTxn: { id: expenseId } });
     } catch (error) {
-      console.error('ExpenseClient: Failed to fetch expense', error);
+      logger.error('ExpenseClient: Failed to fetch expense', error);
       throw error;
     }
   }
@@ -46,7 +46,7 @@ export class ExpenseClient {
     try {
       return await this.sendMessage('getSampledExpenses', filters);
     } catch (error) {
-      console.error('ExpenseClient: Failed to get sampled expenses', error);
+      logger.error('ExpenseClient: Failed to get sampled expenses', error);
       throw error;
     }
   }
@@ -56,7 +56,7 @@ export class ExpenseClient {
     try {
       return await this.sendMessage('createExpense', { expenseData });
     } catch (error) {
-      console.error('ExpenseClient: Failed to create expense', error);
+      logger.error('ExpenseClient: Failed to create expense', error);
       throw error;
     }
   }
@@ -66,7 +66,7 @@ export class ExpenseClient {
     try {
       return await this.sendMessage('searchTransactions', filters);
     } catch (error) {
-      console.error('ExpenseClient: Failed to search transactions', error);
+      logger.error('ExpenseClient: Failed to search transactions', error);
       throw error;
     }
   }
@@ -76,7 +76,7 @@ export class ExpenseClient {
     try {
       return await this.sendMessage('getExpenseCategories');
     } catch (error) {
-      console.error('ExpenseClient: Failed to get expense categories', error);
+      logger.error('ExpenseClient: Failed to get expense categories', error);
       throw error;
     }
   }
@@ -93,7 +93,7 @@ export class ExpenseClient {
     try {
       return await this.sendMessage('getExpenseStats', filters);
     } catch (error) {
-      console.error('ExpenseClient: Failed to get expense stats', error);
+      logger.error('ExpenseClient: Failed to get expense stats', error);
       throw error;
     }
   }
@@ -101,20 +101,25 @@ export class ExpenseClient {
 
 // Helper function for sending messages with different parameter structures
 // This maintains compatibility with the reference implementation
-function sendMessageCompat(action: string, payload?: any, selectedTxn?: any, expenseData?: any): Promise<any> {
+function sendMessageCompat<T = unknown>(
+  action: string,
+  payload?: unknown,
+  selectedTxn?: unknown,
+  expenseData?: unknown
+): Promise<T> {
   return new Promise((resolve, reject) => {
-    const message: any = { action };
-    
+    const message: Record<string, unknown> = { action };
+
     if (payload) message.payload = payload;
     if (selectedTxn) message.selectedTxn = selectedTxn;
     if (expenseData) message.expenseData = expenseData;
-    
+
     chrome.runtime.sendMessage(message, (response) => {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError.message));
         return;
       }
-      
+
       if (response?.success) {
         resolve(response.data);
       } else {
@@ -126,13 +131,12 @@ function sendMessageCompat(action: string, payload?: any, selectedTxn?: any, exp
 
 // Updated ExpenseClient methods that match the reference pattern more closely
 export class ExpenseClientCompat {
-  
   // Fetch a single expense by ID (matching reference pattern)
   static async fetchExpense(expenseId: string): Promise<ExpenseResponse> {
     try {
       return await sendMessageCompat('fetchExpense', undefined, { id: expenseId });
     } catch (error) {
-      console.error('ExpenseClient: Failed to fetch expense', error);
+      logger.error('ExpenseClient: Failed to fetch expense', error);
       throw error;
     }
   }
@@ -142,7 +146,7 @@ export class ExpenseClientCompat {
     try {
       return await sendMessageCompat('createExpense', undefined, undefined, expenseData);
     } catch (error) {
-      console.error('ExpenseClient: Failed to create expense', error);
+      logger.error('ExpenseClient: Failed to create expense', error);
       throw error;
     }
   }
@@ -152,7 +156,7 @@ export class ExpenseClientCompat {
     try {
       return await sendMessageCompat('getSampledExpenses', filters);
     } catch (error) {
-      console.error('ExpenseClient: Failed to get sampled expenses', error);
+      logger.error('ExpenseClient: Failed to get sampled expenses', error);
       throw error;
     }
   }

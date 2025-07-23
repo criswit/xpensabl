@@ -28,43 +28,6 @@
       line-height: 1.5;
     }
     
-    .token-section {
-      margin-top: 20px;
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    .token-section h2 {
-      color: #333;
-      font-size: 18px;
-      margin-bottom: 15px;
-    }
-    
-    .token-container {
-      margin-bottom: 10px;
-    }
-    
-    .token-display {
-      background-color: #f8f9fa;
-      border: 1px solid #dee2e6;
-      padding: 12px;
-      border-radius: 4px;
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      word-break: break-all;
-      margin-bottom: 10px;
-      min-height: 40px;
-      display: flex;
-      align-items: center;
-    }
-    
-    .token-actions {
-      display: flex;
-      gap: 10px;
-    }
-    
     .btn {
       padding: 8px 16px;
       border: none;
@@ -95,21 +58,6 @@
     
     .btn-secondary:hover:not(:disabled) {
       background-color: #545b62;
-    }
-    
-    .token-status {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #6c757d;
-      min-height: 20px;
-    }
-    
-    .token-status.success {
-      color: #28a745;
-    }
-    
-    .token-status.error {
-      color: #dc3545;
     }
     
     .expenses-section {
@@ -271,7 +219,7 @@
         padding: 15px;
       }
       
-      .content, .token-section, .expenses-section {
+      .content, .expenses-section {
         padding: 15px;
       }
       
@@ -280,7 +228,7 @@
         margin-bottom: 15px;
       }
       
-      .token-section h2, .expenses-section h2 {
+      .expenses-section h2 {
         font-size: 16px;
         margin-bottom: 12px;
       }
@@ -410,28 +358,888 @@
       background-color: #0056b3;
       border-color: #0056b3;
     }
+
+    /* Templates Section Styles */
+    .templates-section {
+      margin-top: 20px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .templates-section h2 {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .template-controls {
+      margin-bottom: 15px;
+    }
+
+    .templates-status {
+      margin-bottom: 15px;
+      font-size: 13px;
+      color: #6c757d;
+      min-height: 20px;
+    }
+
+    .templates-status.success {
+      color: #28a745;
+    }
+
+    .templates-status.error {
+      color: #dc3545;
+    }
+
+    /* Template List Styles */
+    .template-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+
+    .template-item {
+      background-color: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .template-item:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-color: #007bff;
+    }
+
+    .template-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .template-name {
+      font-weight: 600;
+      font-size: 16px;
+      color: #333;
+      flex: 1;
+    }
+
+    .template-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      padding: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #6c757d;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .template-details {
+      margin-bottom: 16px;
+    }
+
+    .template-merchant {
+      font-size: 14px;
+      color: #495057;
+      margin-bottom: 4px;
+    }
+
+    .template-amount {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .template-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #6c757d;
+    }
+
+    .template-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid #f8f9fa;
+    }
+
+    /* Template Detail/Edit Styles */
+    .template-detail {
+      margin-top: 20px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .template-detail .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .template-detail .detail-header h3 {
+      margin: 0;
+      color: #333;
+      font-size: 18px;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+      border-color: #007bff;
+      outline: 0;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .input-group {
+      display: flex;
+    }
+
+    .currency-select {
+      width: 80px;
+      margin-right: 8px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 20px;
+      border-top: 1px solid #dee2e6;
+    }
+
+    /* Template Creation Dialog */
+    .template-creation-dialog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+    }
+
+    .dialog-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .dialog-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 500px;
+      max-height: 80%;
+      overflow-y: auto;
+    }
+
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 20px 0;
+      margin-bottom: 20px;
+    }
+
+    .dialog-header h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #6c757d;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-close:hover {
+      color: #333;
+    }
+
+    .dialog-body {
+      padding: 0 20px;
+    }
+
+    .dialog-actions {
+      padding: 20px;
+      border-top: 1px solid #dee2e6;
+      display: flex;
+      gap: 10px;
+    }
+
+    .template-preview {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .template-preview h4 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #333;
+    }
+
+    /* Status Indicators */
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .status-indicator.success { 
+      background-color: #28a745; 
+    }
+
+    .status-indicator.failed { 
+      background-color: #dc3545; 
+    }
+
+    .status-indicator.pending { 
+      background-color: #ffc107; 
+    }
+
+    .status-indicator.paused { 
+      background-color: #6c757d; 
+    }
+
+    .status-indicator.processing { 
+      background-color: #007bff;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { 
+        opacity: 1; 
+      }
+      50% { 
+        opacity: 0.5; 
+      }
+    }
+
+    /* Error Handling */
+    .form-group.has-error .form-control {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .form-group.has-error .error-message {
+      display: block;
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .form-group .error-message {
+      display: none;
+    }
+
+    /* Button Variants */
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+      border: 1px solid #dc3545;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
+
+    /* Notifications */
+    .notification {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      border-radius: 4px;
+      border-left: 4px solid;
+    }
+
+    .notification.success {
+      background-color: #d4edda;
+      border-left-color: #28a745;
+      color: #155724;
+    }
+
+    .notification.error {
+      background-color: #f8d7da;
+      border-left-color: #dc3545;
+      color: #721c24;
+    }
+
+    .notification.warning {
+      background-color: #fff3cd;
+      border-left-color: #ffc107;
+      color: #856404;
+    }
+
+    .notification.info {
+      background-color: #d1ecf1;
+      border-left-color: #17a2b8;
+      color: #0c5460;
+    }
+
+    .notification-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: inherit;
+      opacity: 0.7;
+    }
+
+    .notification-close:hover {
+      opacity: 1;
+    }
+
+    /* Empty State */
+    .template-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6c757d;
+    }
+
+    .template-empty h4 {
+      margin: 10px 0;
+      color: #495057;
+    }
+
+    .template-empty p {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    /* Scheduling Configuration Styles */
+    .scheduling-section {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .scheduling-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .scheduling-header h4 {
+      margin: 0;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #007bff;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .scheduling-config {
+      margin-top: 15px;
+    }
+
+    .frequency-options {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .frequency-options label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .time-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .time-input-group select {
+      width: auto;
+      min-width: 60px;
+    }
+
+    .day-checkboxes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .day-checkboxes label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      font-weight: normal;
+      min-width: 60px;
+    }
+
+    .scheduling-preview {
+      margin: 15px 0;
+      padding: 10px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .scheduling-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .form-text {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 4px;
+    }
+
+    /* Execution History Styles */
+    .execution-history {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .execution-history h4 {
+      margin: 0 0 15px 0;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .history-table {
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .history-header {
+      display: flex;
+      background-color: #e9ecef;
+      font-weight: 600;
+      font-size: 14px;
+      color: #495057;
+    }
+
+    .history-header > div {
+      padding: 12px 8px;
+      border-right: 1px solid #dee2e6;
+    }
+
+    .history-header > div:last-child {
+      border-right: none;
+    }
+
+    .col-datetime {
+      flex: 2;
+      min-width: 140px;
+    }
+
+    .col-status {
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .col-expense {
+      flex: 2;
+      min-width: 120px;
+    }
+
+    .history-body {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .history-row {
+      display: flex;
+      border-bottom: 1px solid #e9ecef;
+      background-color: white;
+    }
+
+    .history-row:hover {
+      background-color: #f8f9fa;
+    }
+
+    .history-row:last-child {
+      border-bottom: none;
+    }
+
+    .history-row > div {
+      padding: 10px 8px;
+      border-right: 1px solid #e9ecef;
+      font-size: 13px;
+    }
+
+    .history-row > div:last-child {
+      border-right: none;
+    }
+
+    .history-pagination {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .execution-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Scheduling indicator styles */
+    .scheduling-info {
+      margin-top: 8px;
+    }
+
+    .scheduling-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .scheduling-indicator.active {
+      color: #155724;
+      background-color: #d4edda;
+    }
+
+    .scheduling-indicator.paused {
+      color: #856404;
+      background-color: #fff3cd;
+    }
+
+    .scheduling-indicator.inactive {
+      color: #6c757d;
+      background-color: #e2e3e5;
+    }
+
+    /* Icon replacements for cross-browser compatibility */
+    .icon-clock::before {
+      content: "🕒";
+      font-size: 12px;
+    }
+
+    .icon-clock-outline::before {
+      content: "⏰";
+      font-size: 12px;
+    }
+
+    /* Help Section Styles */
+    .help-section {
+      margin-bottom: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .help-header {
+      padding: 15px 20px;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .help-header:hover {
+      background-color: #e9ecef;
+    }
+
+    .help-title {
+      font-weight: 600;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .help-toggle {
+      color: #6c757d;
+      font-size: 14px;
+      font-weight: bold;
+      transition: transform 0.2s ease;
+    }
+
+    .help-toggle.expanded {
+      transform: rotate(180deg);
+    }
+
+    .help-content {
+      padding: 20px;
+      background-color: white;
+    }
+
+    .help-item {
+      margin-bottom: 20px;
+    }
+
+    .help-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .help-item h4 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .help-item p {
+      margin: 0 0 4px 0;
+      color: #666;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .help-item p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Responsive adjustments for templates */
+    @media (max-width: 400px) {
+      .templates-section {
+        padding: 15px;
+      }
+
+      .template-item {
+        padding: 12px;
+      }
+
+      .template-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .template-actions {
+        align-self: flex-end;
+      }
+
+      .template-footer {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .dialog-content {
+        width: 95%;
+        margin: 10px;
+      }
+
+      .form-actions, .dialog-actions {
+        flex-direction: column;
+      }
+
+      .frequency-options {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .day-checkboxes {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .time-input-group {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .time-input-group select {
+        width: 100%;
+      }
+
+      .history-header, .history-row {
+        font-size: 11px;
+      }
+
+      .col-datetime {
+        min-width: 100px;
+      }
+
+      .col-status {
+        min-width: 70px;
+      }
+
+      .col-expense {
+        min-width: 90px;
+      }
+    }
   </style>
 </head>
 <body>
   <h1>Xpensabl Side Panel</h1>
-  <div class="content">
-    <p class="info">Welcome to the Xpensabl side panel!</p>
-    <p class="info">This panel stays open alongside your browser content.</p>
-  </div>
   
-  <div class="token-section">
-    <h2>Authorization Token</h2>
-    <div class="token-container">
-      <div class="token-display" id="tokenDisplay">
-        <span id="tokenText">No token captured yet</span>
+  <!-- Help Section -->
+  <div class="help-section">
+    <div class="help-header" id="helpHeader">
+      <span class="help-title">Help & Getting Started</span>
+      <span class="help-toggle" id="helpToggle">▼</span>
+    </div>
+    <div class="help-content" id="helpContent" style="display: none;">
+      <div class="help-item">
+        <h4>Getting Started</h4>
+        <p>Xpensabl automates expense management for Navan users with templates and scheduling.</p>
+        <p>The extension automatically captures your Navan authentication tokens for seamless integration.</p>
       </div>
-      <div class="token-actions">
-        <button id="copyToken" class="btn btn-primary" disabled>Copy Token</button>
-        <button id="refreshToken" class="btn btn-secondary">Refresh</button>
-        <button id="toggleMask" class="btn btn-secondary" style="display: none;">Show Full</button>
+      <div class="help-item">
+        <h4>Managing Expenses</h4>
+        <p>• Click "Fetch Expenses" to load your recent expenses from Navan with real-time status</p>
+        <p>• Click any expense to view detailed information including merchant, amount, policy, and approval status</p>
+        <p>• Use "Duplicate Expense" to quickly create similar expenses with updated dates</p>
+        <p>• Click "Save as Template" to convert expenses into reusable templates</p>
+      </div>
+      <div class="help-item">
+        <h4>Template System</h4>
+        <p>• Create up to 5 expense templates with custom names and details</p>
+        <p>• Template cards show merchant, amount, usage statistics, and scheduling status</p>
+        <p>• Edit templates in-place with validation for all fields</p>
+        <p>• Apply templates to create new expenses with current date automatically</p>
+        <p>• Duplicate existing templates or delete with confirmation dialogs</p>
+      </div>
+      <div class="help-item">
+        <h4>Automated Scheduling</h4>
+        <p>• Schedule templates for automatic expense creation at specified times</p>
+        <p>• Choose from daily, weekly (specific days), monthly (specific date/last day), or custom intervals</p>
+        <p>• Minimum custom interval is 5 minutes, with support for minutes and hours</p>
+        <p>• Pause/resume schedules without losing configuration</p>
+        <p>• View execution history showing last 50 runs with success/failure status</p>
+      </div>
+      <div class="help-item">
+        <h4>Notifications & Monitoring</h4>
+        <p>• Receive Chrome notifications for scheduled expense creation results</p>
+        <p>• Success notifications include "View Expense" action buttons</p>
+        <p>• Authentication alerts provide "Open Navan" action for re-authentication</p>
+        <p>• Smart retry system automatically handles transient failures with exponential backoff</p>
+      </div>
+      <div class="help-item">
+        <h4>Data & Security</h4>
+        <p>• All data stored securely in Chrome storage with 10MB capacity</p>
+        <p>• Template metadata syncs across your devices via Chrome sync</p>
+        <p>• Authentication tokens cached for 5 minutes to reduce API calls</p>
+        <p>• Comprehensive logging system for debugging and monitoring</p>
       </div>
     </div>
-    <div class="token-status" id="tokenStatus"></div>
   </div>
   
   <div class="expenses-section">
@@ -458,9 +1266,258 @@
       </div>
       <div class="detail-actions">
         <button id="duplicateExpense" class="btn btn-primary">Duplicate Expense</button>
+        <button id="saveAsTemplate" class="btn btn-secondary">Save as Template</button>
       </div>
     </div>
   </div>
+
+  <!-- Templates Section -->
+  <div class="templates-section">
+    <h2>Expense Templates</h2>
+    <div class="template-controls">
+      <div class="templates-status" id="templatesStatus">Click "Fetch Expenses" to create templates from existing expenses</div>
+    </div>
+    <div class="template-content">
+      <!-- Template List View -->
+      <div class="template-list" id="templateList" style="display: none;">
+        <div class="template-list-content" id="templateListContent">
+          <!-- Template items will be populated here -->
+        </div>
+      </div>
+      
+      <!-- Template Detail/Edit View -->
+      <div class="template-detail" id="templateDetail" style="display: none;">
+        <div class="detail-header">
+          <button id="backToTemplates" class="btn btn-secondary">← Templates</button>
+          <h3 id="templateDetailTitle">Template Details</h3>
+          <button id="toggleTemplateEdit" class="btn btn-secondary">Edit</button>
+        </div>
+        
+        <div class="detail-content" id="templateDetailContent">
+          <!-- Template details in read-only format -->
+        </div>
+        
+        <!-- Execution History Section -->
+        <div class="execution-history" id="executionHistory" style="display: none;">
+          <h4>Execution History</h4>
+          <div class="history-table">
+            <div class="history-header">
+              <div class="col-datetime">Date/Time</div>
+              <div class="col-status">Status</div>
+              <div class="col-expense">Expense</div>
+            </div>
+            <div class="history-body" id="historyBody">
+              <!-- History rows populated dynamically -->
+            </div>
+          </div>
+          <div class="history-pagination" style="display: none;">
+            <button class="btn btn-secondary" id="loadMoreHistory">Load More</button>
+          </div>
+        </div>
+        
+        <div class="template-edit-form" id="templateEditForm" style="display: none;">
+          <!-- Template editing form -->
+          <div class="form-group">
+            <label for="templateName">Template Name</label>
+            <input type="text" id="templateName" class="form-control" required>
+            <div class="error-message" id="templateNameError"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="templateMerchant">Merchant</label>
+            <input type="text" id="templateMerchant" class="form-control" required>
+            <div class="error-message" id="templateMerchantError"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="templateAmount">Amount</label>
+            <div class="input-group">
+              <select id="templateCurrency" class="form-control currency-select">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+              </select>
+              <input type="number" id="templateAmount" class="form-control" step="0.01" required>
+            </div>
+            <div class="error-message" id="templateAmountError"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="templateDescription">Description</label>
+            <textarea id="templateDescription" class="form-control" rows="3"></textarea>
+          </div>
+          
+          <!-- Scheduling Configuration Section -->
+          <div class="scheduling-section">
+            <div class="scheduling-header">
+              <h4>Schedule Template</h4>
+              <div class="scheduling-toggle">
+                <label class="switch">
+                  <input type="checkbox" id="enableScheduling">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="scheduling-config" id="schedulingConfig" style="display: none;">
+              <div class="form-group">
+                <label>Frequency</label>
+                <div class="frequency-options">
+                  <label><input type="radio" name="frequency" value="daily"> Daily</label>
+                  <label><input type="radio" name="frequency" value="weekly"> Weekly</label>
+                  <label><input type="radio" name="frequency" value="monthly"> Monthly</label>
+                  <label><input type="radio" name="frequency" value="custom"> Custom</label>
+                </div>
+              </div>
+              
+              <div class="form-group time-settings">
+                <label id="timeSettingsLabel">Execution Start Time</label>
+                <div class="time-input-group">
+                  <select id="hour" class="form-control">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9" selected>9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                  <select id="minute" class="form-control">
+                    <option value="0" selected>00</option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                    <option value="45">45</option>
+                  </select>
+                  <select id="ampm" class="form-control">
+                    <option value="AM" selected>AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-group weekly-settings" style="display: none;">
+                <label>Days of Week</label>
+                <div class="day-checkboxes">
+                  <label><input type="checkbox" value="monday"> Mon</label>
+                  <label><input type="checkbox" value="tuesday"> Tue</label>
+                  <label><input type="checkbox" value="wednesday"> Wed</label>
+                  <label><input type="checkbox" value="thursday"> Thu</label>
+                  <label><input type="checkbox" value="friday"> Fri</label>
+                  <label><input type="checkbox" value="saturday"> Sat</label>
+                  <label><input type="checkbox" value="sunday"> Sun</label>
+                </div>
+              </div>
+              
+              <div class="form-group monthly-settings" style="display: none;">
+                <label>Day of Month</label>
+                <select id="dayOfMonth" class="form-control">
+                  <option value="1" selected>1st</option>
+                  <option value="2">2nd</option>
+                  <option value="3">3rd</option>
+                  <option value="4">4th</option>
+                  <option value="5">5th</option>
+                  <option value="6">6th</option>
+                  <option value="7">7th</option>
+                  <option value="8">8th</option>
+                  <option value="9">9th</option>
+                  <option value="10">10th</option>
+                  <option value="11">11th</option>
+                  <option value="12">12th</option>
+                  <option value="13">13th</option>
+                  <option value="14">14th</option>
+                  <option value="15">15th</option>
+                  <option value="16">16th</option>
+                  <option value="17">17th</option>
+                  <option value="18">18th</option>
+                  <option value="19">19th</option>
+                  <option value="20">20th</option>
+                  <option value="21">21st</option>
+                  <option value="22">22nd</option>
+                  <option value="23">23rd</option>
+                  <option value="24">24th</option>
+                  <option value="25">25th</option>
+                  <option value="26">26th</option>
+                  <option value="27">27th</option>
+                  <option value="28">28th</option>
+                  <option value="29">29th</option>
+                  <option value="30">30th</option>
+                  <option value="31">31st</option>
+                  <option value="last">Last Day</option>
+                </select>
+              </div>
+              
+              <div class="form-group custom-settings" style="display: none;">
+                <label>Custom Interval</label>
+                <div class="interval-input-group" style="display: flex; gap: 10px; align-items: flex-start;">
+                  <div style="flex: 1;">
+                    <input type="number" id="customInterval" class="form-control" min="5" max="525600" value="60">
+                  </div>
+                  <div style="flex: 0 0 100px;">
+                    <select id="intervalUnit" class="form-control">
+                      <option value="minutes" selected>Minutes</option>
+                      <option value="hours">Hours</option>
+                    </select>
+                  </div>
+                </div>
+                <small class="form-text" id="intervalHelpText">Enter interval between executions (minimum 5 minutes)</small>
+              </div>
+              
+              <div class="scheduling-preview">
+                <strong>Next execution:</strong> <span id="nextExecutionPreview">-</span>
+              </div>
+              
+              <div class="scheduling-actions">
+                <button type="button" id="pauseSchedule" class="btn btn-secondary" style="display: none;">Pause</button>
+                <button type="button" id="resumeSchedule" class="btn btn-secondary" style="display: none;">Resume</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button id="saveTemplate" class="btn btn-primary">Save Changes</button>
+            <button id="cancelTemplateEdit" class="btn btn-secondary">Cancel</button>
+          </div>
+        </div>
+        
+        <div class="detail-actions" id="templateDetailActions">
+          <button id="applyTemplate" class="btn btn-primary">Apply Template</button>
+          <button id="duplicateTemplate" class="btn btn-secondary">Duplicate</button>
+          <button id="deleteTemplate" class="btn btn-danger">Delete</button>
+        </div>
+      </div>
+      
+      <!-- Template Creation Dialog -->
+      <div class="template-creation-dialog" id="templateCreationDialog" style="display: none;">
+        <div class="dialog-overlay"></div>
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <h3>Save as Template</h3>
+            <button id="closeTemplateDialog" class="btn-close">&times;</button>
+          </div>
+          <div class="dialog-body">
+            <div class="form-group">
+              <label for="newTemplateName">Template Name</label>
+              <input type="text" id="newTemplateName" class="form-control" placeholder="Enter template name" required>
+              <div class="error-message" id="newTemplateNameError"></div>
+            </div>
+            <div class="template-preview" id="templatePreview">
+              <!-- Preview of template data -->
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button id="createTemplate" class="btn btn-primary">Create Template</button>
+            <button id="cancelTemplateCreation" class="btn btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <script src="sidepanel.js"></script>
 </body>
 </html>

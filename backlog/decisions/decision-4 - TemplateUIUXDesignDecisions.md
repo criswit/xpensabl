@@ -6,21 +6,35 @@ status: Decided
 ---
 ## Context
 
-Template management requires comprehensive UI/UX design decisions for the Xpensabl Chrome extension side panel. The design must integrate seamlessly with existing components while providing intuitive template creation, editing, scheduling, and monitoring capabilities within the limited space constraints of a Chrome extension side panel.
+Template management requires comprehensive UI/UX design decisions for the Xpensabl Chrome extension side panel. The design must integrate seamlessly with existing expense management components while providing intuitive template creation, editing, scheduling, and monitoring capabilities within the limited space constraints of a Chrome extension side panel.
+
+Key requirements include:
+- Integration with existing expense detail workflow for template creation
+- Support for 5 template maximum with clear limit management
+- Alignment with established ExpenseTemplate data model
+- Progressive disclosure to manage complexity in limited space
+- Consistent visual hierarchy with existing token and expense sections
 
 ## Decision
 
 ### Layout and Structure
 
-**Three-Section Template Layout:**
-- Template List Section: Displays saved templates with quick actions
-- Template Detail/Edit Section: Shows detailed template information and editing interface  
-- Scheduling Section: Dedicated area for scheduling configuration and monitoring
+**Integration with Existing Side Panel:**
+- Template section positioned after expenses section in vertical layout
+- Maintains consistent section structure: header (h2), controls, content area
+- Uses same spacing and visual hierarchy as token-section and expenses-section
 
 **Template Card Design Pattern:**
-- Template Header: Name, favorite star, and quick actions (edit, delete, duplicate)
-- Template Details: Merchant, amount, last used date, scheduling status
-- Template Footer: Apply button, scheduling indicator, execution status
+- Follows expense-item pattern with consistent padding, border-radius, and hover effects
+- Template Header: Name, favorite star, and quick actions (edit, delete, duplicate)  
+- Template Details: Merchant name, formatted amount with currency, usage statistics
+- Template Meta: Last used date, scheduling status, execution indicators
+- Template Footer: Primary "Apply Template" action, status indicators
+
+**Template Entry Points:**
+- "Save as Template" button added to expense detail view actions
+- Template creation form triggered from expense context
+- Template management controls in template section header
 
 ### User Interaction Patterns
 
@@ -77,6 +91,21 @@ Template management requires comprehensive UI/UX design decisions for the Xpensa
 - Message: Clear action-oriented text ("Expense created successfully", "Login to Navan required")
 - Actions: Primary action button when applicable ("View Expense", "Login Now")
 
+### Data Model Alignment
+
+**ExpenseTemplate Integration:**
+- Template cards display data from ExpenseTemplate interface fields
+- Template metadata (favorite, lastUsed, useCount) prominently featured
+- Template creation preserves all ExpenseCreatePayload structure
+- Scheduling configuration maps to TemplateScheduling interface
+- Execution history displays TemplateExecution records with proper status mapping
+
+**Template Creation Workflow:**
+- Source expense data pre-populates template creation form
+- User provides template name and optional customizations
+- Tags from TemplateMetadata used for organization and search
+- Creation date/time automatically recorded in ExpenseTemplate.createdAt
+
 ### Error Handling and Edge Cases
 
 **Graceful Degradation Strategy:**
@@ -85,30 +114,43 @@ Template management requires comprehensive UI/UX design decisions for the Xpensa
 - Offline Support: Cache template data locally, sync when connection restored
 - Partial Failures: Allow users to save partial template data and complete later
 
-**Template Limit Management:**
-- Warning at 4 templates: Show warning message when creating 4th template
-- Blocking at 5 templates: Disable "Create Template" button, show upgrade message
-- Template Management: Provide "Manage Templates" link to delete/organize existing templates
-- Smart Suggestions: Suggest deleting unused or old templates when limit reached
+**Template Limit Management (5 Template Maximum):**
+- Template Counter: Always visible "(X/5)" in section header
+- Warning at 4 templates: Show notification when creating 4th template
+- Blocking at 5 templates: Disable "Save as Template" buttons, show clear messaging
+- Template Management: Provide delete options with usage statistics to help decision-making
+- Smart Suggestions: Highlight unused templates (useCount = 0) for potential deletion
+
+**Empty State Handling:**
+- Clear messaging when no templates exist with call-to-action
+- Guidance on how to create first template from existing expenses
+- Progressive disclosure of template features as user creates templates
 
 ## Consequences
 
 ### Positive
-- Consistent user experience aligned with existing side panel design patterns
-- Progressive disclosure reduces cognitive load for users
-- Clear visual hierarchy and status communication through color coding
-- Comprehensive error handling improves user confidence
-- Proactive template limit management prevents user frustration
+- Seamless integration with existing expense workflow creates natural user journey
+- Consistent visual language with existing sections reduces learning curve
+- Data model alignment ensures accurate template representation and functionality
+- Template limit handling provides clear guidance without blocking user progress
+- Progressive disclosure manages complexity while maintaining feature accessibility
+- Clear visual hierarchy and status communication through established color coding
+- Comprehensive error handling improves user confidence and system reliability
 
 ### Negative
-- Increased complexity in implementation due to multiple interaction states
-- Limited space in side panel may constrain future feature additions
-- Progressive disclosure may hide advanced features from power users
-- Cross-site notifications depend on Chrome permission grants
+- Increased complexity in implementation due to multiple interaction states and views
+- Limited space in side panel constrains template information density
+- Progressive disclosure may initially hide advanced scheduling features from power users
+- Cross-site notifications depend on Chrome extension permission grants
+- Template limit of 5 may feel restrictive for heavy users
+- Integration points with expense workflow increase coupling between components
 
 ### Mitigations
-- Implement comprehensive user testing to validate design decisions
-- Create detailed UI components library for consistent implementation
-- Provide clear documentation and tooltips for advanced features
-- Implement fallback strategies for notification permission denial
+- Implement comprehensive user testing to validate progressive disclosure approach
+- Create detailed UI components library for consistent implementation across features
+- Provide clear tooltips and help text for advanced scheduling features
+- Implement graceful fallback strategies for notification permission denial
+- Design template deletion workflow with usage statistics to help users manage limits
+- Use well-defined interfaces and event patterns to minimize coupling between components
+- Consider future expandability in template section layout design
 

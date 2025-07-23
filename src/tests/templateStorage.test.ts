@@ -4,11 +4,7 @@
 import { TemplateManager } from '../services/templateManager';
 import { StorageManager } from '../services/storageManager';
 import { MigrationManager } from '../services/migrationManager';
-import { 
-  CreateTemplateRequest, 
-  ExpenseTemplate,
-  TemplateExpenseData 
-} from '../model/template';
+import { CreateTemplateRequest, TemplateExpenseData, ExpenseTemplate } from '../model/template';
 
 // Mock Chrome storage API for testing
 const mockChromeStorage = {
@@ -18,8 +14,8 @@ const mockChromeStorage = {
     remove: jest.fn(),
     getBytesInUse: jest.fn().mockResolvedValue(1024),
     onChanged: {
-      addListener: jest.fn()
-    }
+      addListener: jest.fn(),
+    },
   },
   local: {
     get: jest.fn(),
@@ -27,18 +23,18 @@ const mockChromeStorage = {
     remove: jest.fn(),
     getBytesInUse: jest.fn().mockResolvedValue(5120),
     onChanged: {
-      addListener: jest.fn()
-    }
+      addListener: jest.fn(),
+    },
   },
   onChanged: {
-    addListener: jest.fn()
-  }
+    addListener: jest.fn(),
+  },
 };
 
 // Setup global chrome mock
 beforeAll(() => {
   (global as any).chrome = {
-    storage: mockChromeStorage
+    storage: mockChromeStorage,
   };
 });
 
@@ -46,7 +42,7 @@ beforeAll(() => {
 if (typeof TextEncoder === 'undefined') {
   (global as any).TextEncoder = class {
     encode(str: string) {
-      return new Uint8Array(str.split('').map(c => c.charCodeAt(0)));
+      return new Uint8Array(str.split('').map((c) => c.charCodeAt(0)));
     }
   };
 }
@@ -64,7 +60,7 @@ const mockExpenseData: TemplateExpenseData = {
     name: 'Test Restaurant',
     online: false,
     perDiem: false,
-    timeZone: 'America/New_York'
+    timeZone: 'America/New_York',
   },
   details: {
     description: 'Test expense',
@@ -75,12 +71,12 @@ const mockExpenseData: TemplateExpenseData = {
       country: 'US',
       noTax: false,
       reverseCharge: false,
-      taxRateDecimal: true
-    }
+      taxRateDecimal: true,
+    },
   },
   reportingData: {
-    department: 'Engineering'
-  }
+    department: 'Engineering',
+  },
 };
 
 describe('Template Storage System', () => {
@@ -91,7 +87,7 @@ describe('Template Storage System', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Get instances
     templateManager = TemplateManager.getInstance();
     storageManager = StorageManager.getInstance();
@@ -102,10 +98,10 @@ describe('Template Storage System', () => {
     test('should save and retrieve sync data', async () => {
       const testData = { test: 'value' };
       mockChromeStorage.sync.get.mockResolvedValue({ testKey: testData });
-      
+
       await storageManager.setSyncData('testKey', testData);
       const retrieved = await storageManager.getSyncData('testKey');
-      
+
       expect(mockChromeStorage.sync.set).toHaveBeenCalledWith({ testKey: testData });
       expect(retrieved).toEqual(testData);
     });
@@ -113,17 +109,17 @@ describe('Template Storage System', () => {
     test('should save and retrieve local data', async () => {
       const testData = { test: 'value' };
       mockChromeStorage.local.get.mockResolvedValue({ testKey: testData });
-      
+
       await storageManager.setLocalData('testKey', testData);
       const retrieved = await storageManager.getLocalData('testKey');
-      
+
       expect(mockChromeStorage.local.set).toHaveBeenCalledWith({ testKey: testData });
       expect(retrieved).toEqual(testData);
     });
 
     test('should get quota information', async () => {
       const quotaInfo = await storageManager.getSyncQuotaInfo();
-      
+
       expect(quotaInfo).toHaveProperty('used');
       expect(quotaInfo).toHaveProperty('available');
       expect(quotaInfo).toHaveProperty('percentUsed');
@@ -141,7 +137,7 @@ describe('Template Storage System', () => {
       const createRequest: CreateTemplateRequest = {
         name: 'Test Template',
         expenseData: mockExpenseData,
-        createdFrom: 'manual'
+        createdFrom: 'manual',
       };
 
       const template = await templateManager.createTemplate(createRequest);
@@ -155,20 +151,20 @@ describe('Template Storage System', () => {
     test('should validate template data', async () => {
       const invalidRequest: CreateTemplateRequest = {
         name: '', // Invalid empty name
-        expenseData: mockExpenseData
+        expenseData: mockExpenseData,
       };
 
-      await expect(templateManager.createTemplate(invalidRequest))
-        .rejects
-        .toThrow('Template name is required');
+      await expect(templateManager.createTemplate(invalidRequest)).rejects.toThrow(
+        'Template name is required'
+      );
     });
 
     test('should enforce template limit', async () => {
       // Clear cache and create fresh manager instance
       await storageManager.clearCache();
-      
+
       // Mock storage with maximum templates
-      const mockTemplates: any = {};
+      const mockTemplates: Record<string, ExpenseTemplate> = {};
       for (let i = 0; i < 5; i++) {
         mockTemplates[`template_${i}`] = {
           id: `template_${i}`,
@@ -184,14 +180,14 @@ describe('Template Storage System', () => {
             tags: [],
             favorite: false,
             useCount: 0,
-            scheduledUseCount: 0
-          }
+            scheduledUseCount: 0,
+          },
         };
       }
 
       // Reset mocks for this test
       jest.clearAllMocks();
-      
+
       // Mock the get calls to return templates and preferences
       mockChromeStorage.local.get.mockImplementation((key: string) => {
         if (key === 'xpensabl.templates.local') {
@@ -199,8 +195,8 @@ describe('Template Storage System', () => {
             'xpensabl.templates.local': {
               templates: mockTemplates,
               executionQueue: [],
-              migrationState: { currentVersion: 1, pendingMigrations: [] }
-            }
+              migrationState: { currentVersion: 1, pendingMigrations: [] },
+            },
           });
         }
         return Promise.resolve({});
@@ -211,14 +207,14 @@ describe('Template Storage System', () => {
           return Promise.resolve({
             'xpensabl.templates.sync': {
               version: 1,
-              preferences: { 
+              preferences: {
                 maxTemplates: 5,
                 defaultTimeZone: 'UTC',
                 notificationEnabled: true,
-                autoCleanupDays: 90
+                autoCleanupDays: 90,
               },
-              templateIndex: []
-            }
+              templateIndex: [],
+            },
           });
         }
         return Promise.resolve({});
@@ -226,12 +222,12 @@ describe('Template Storage System', () => {
 
       const createRequest: CreateTemplateRequest = {
         name: 'Sixth Template',
-        expenseData: mockExpenseData
+        expenseData: mockExpenseData,
       };
 
-      await expect(templateManager.createTemplate(createRequest))
-        .rejects
-        .toThrow('Maximum 5 templates allowed');
+      await expect(templateManager.createTemplate(createRequest)).rejects.toThrow(
+        'Maximum 5 templates allowed'
+      );
     });
   });
 
@@ -239,7 +235,7 @@ describe('Template Storage System', () => {
     test('should initialize schema when no data exists', async () => {
       // Clear storage cache to ensure fresh state
       await storageManager.clearCache();
-      
+
       // Clear previous mocks and set up for this specific test
       jest.clearAllMocks();
       mockChromeStorage.local.get.mockImplementation((key: string) => {
@@ -257,9 +253,9 @@ describe('Template Storage System', () => {
           templates: {},
           executionQueue: [],
           migrationState: expect.objectContaining({
-            currentVersion: 1
-          })
-        })
+            currentVersion: 1,
+          }),
+        }),
       });
     });
 
@@ -268,8 +264,8 @@ describe('Template Storage System', () => {
         'xpensabl.templates.local': {
           templates: {},
           executionQueue: [],
-          migrationState: { currentVersion: 1, pendingMigrations: [] }
-        }
+          migrationState: { currentVersion: 1, pendingMigrations: [] },
+        },
       });
 
       const isValid = await migrationManager.validateSchemaVersion();
@@ -281,8 +277,8 @@ describe('Template Storage System', () => {
         'xpensabl.templates.local': {
           templates: {},
           executionQueue: [],
-          migrationState: { currentVersion: 1, pendingMigrations: [] }
-        }
+          migrationState: { currentVersion: 1, pendingMigrations: [] },
+        },
       });
 
       const report = await migrationManager.getDataIntegrityReport();
@@ -307,7 +303,7 @@ describe('Template Storage System', () => {
       const createRequest: CreateTemplateRequest = {
         name: 'Integration Test Template',
         expenseData: mockExpenseData,
-        createdFrom: 'manual'
+        createdFrom: 'manual',
       };
 
       const template = await templateManager.createTemplate(createRequest);
@@ -315,7 +311,7 @@ describe('Template Storage System', () => {
 
       // Update template
       const updatedTemplate = await templateManager.updateTemplate(template.id, {
-        name: 'Updated Template Name'
+        name: 'Updated Template Name',
       });
       expect(updatedTemplate.name).toBe('Updated Template Name');
 
@@ -340,21 +336,34 @@ describe('Template Storage System', () => {
 
 // Helper function to run tests manually in Chrome extension environment
 export function runManualTests(): void {
+  // eslint-disable-next-line no-console
   console.log('Starting manual template storage tests...');
-  
+
   // This function can be called from the extension's popup or side panel
   // to test the storage system in a real Chrome extension environment
-  
+
   const templateManager = TemplateManager.getInstance();
   const migrationManager = MigrationManager.getInstance();
-  
+
   // Test basic functionality
   Promise.resolve()
     .then(() => migrationManager.migrateIfNeeded())
-    .then(() => console.log('✓ Migration check completed'))
+    .then(() => {
+      // eslint-disable-next-line no-console
+      console.log('✓ Migration check completed');
+    })
     .then(() => templateManager.getTemplatePreferences())
-    .then(prefs => console.log('✓ Template preferences loaded:', prefs))
+    .then((prefs) => {
+      // eslint-disable-next-line no-console
+      console.log('✓ Template preferences loaded:', prefs);
+    })
     .then(() => templateManager.getAllTemplates())
-    .then(templates => console.log('✓ Templates loaded:', templates.length))
-    .catch(error => console.error('✗ Manual test failed:', error));
+    .then((templates) => {
+      // eslint-disable-next-line no-console
+      console.log('✓ Templates loaded:', templates.length);
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('✗ Manual test failed:', error);
+    });
 }

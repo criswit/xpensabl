@@ -4,26 +4,26 @@
 const chromeMock = {
   storage: {
     sync: {
-      get: jest.fn(),
-      set: jest.fn(),
-      remove: jest.fn(),
-      getBytesInUse: jest.fn(),
+      get: jest.fn().mockResolvedValue({}),
+      set: jest.fn().mockResolvedValue(undefined),
+      remove: jest.fn().mockResolvedValue(undefined),
+      getBytesInUse: jest.fn().mockResolvedValue(0),
       onChanged: {
-        addListener: jest.fn()
-      }
+        addListener: jest.fn(),
+      },
     },
     local: {
-      get: jest.fn(),
-      set: jest.fn(),
-      remove: jest.fn(),
-      getBytesInUse: jest.fn(),
+      get: jest.fn().mockResolvedValue({}),
+      set: jest.fn().mockResolvedValue(undefined),
+      remove: jest.fn().mockResolvedValue(undefined),
+      getBytesInUse: jest.fn().mockResolvedValue(0),
       onChanged: {
-        addListener: jest.fn()
-      }
+        addListener: jest.fn(),
+      },
     },
     onChanged: {
-      addListener: jest.fn()
-    }
+      addListener: jest.fn(),
+    },
   },
   alarms: {
     create: jest.fn(),
@@ -31,16 +31,16 @@ const chromeMock = {
     get: jest.fn(),
     getAll: jest.fn(),
     onAlarm: {
-      addListener: jest.fn()
-    }
+      addListener: jest.fn(),
+    },
   },
   notifications: {
     create: jest.fn(),
     clear: jest.fn(),
     onClicked: {
-      addListener: jest.fn()
-    }
-  }
+      addListener: jest.fn(),
+    },
+  },
 };
 
 // Setup global chrome object
@@ -49,15 +49,15 @@ const chromeMock = {
 // Mock TextEncoder/TextDecoder for Node.js environment
 if (typeof TextEncoder === 'undefined') {
   (global as any).TextEncoder = class {
-    encode(str: string) {
-      return new Uint8Array(str.split('').map(c => c.charCodeAt(0)));
+    encode(str: string): Uint8Array {
+      return new Uint8Array(str.split('').map((c) => c.charCodeAt(0)));
     }
   };
 }
 
 if (typeof TextDecoder === 'undefined') {
   (global as any).TextDecoder = class {
-    decode(buffer: Uint8Array) {
+    decode(buffer: Uint8Array): string {
       return String.fromCharCode(...buffer);
     }
   };
@@ -67,7 +67,7 @@ if (typeof TextDecoder === 'undefined') {
 if (typeof Blob === 'undefined') {
   (global as any).Blob = class {
     size: number;
-    constructor(parts: any[]) {
+    constructor(parts: unknown[]) {
       this.size = JSON.stringify(parts).length;
     }
   };
