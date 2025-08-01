@@ -1,0 +1,48 @@
+[book]
+authors = ["Expensabl Team"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Expensabl Documentation"
+
+[build]
+build-dir = "book"
+
+[preprocessor.index]
+
+[preprocessor.links]
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/xtendabl/expensabl"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/xtendabl/expensabl/edit/main/docs/{path}"
+site-url = "/expensabl/"
+cname = ""
+additional-css = []
+additional-js = []
+no-section-label = false
+fold.enable = true
+fold.level = 0
+print.enable = true
+print.page-break = true
+mathjax-support = false
+
+[output.html.playground]
+editable = false
+copyable = true
+copy-js = true
+line-numbers = false
+
+[output.html.search]
+enable = true
+limit-results = 30
+teaser-word-count = 30
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 1
+boost-paragraph = 1
+expand = true
+heading-split-level = 3
+copy-js = true
